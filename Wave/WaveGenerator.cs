@@ -1,0 +1,43 @@
+﻿using System.IO;
+using SoundGenerator.Utils;
+
+namespace SoundGenerator.Wave
+{
+    public class WaveGenerator
+    {
+        public static MemoryStream GenerateWaveStream(int durationInSeconds)
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(memoryStream);
+            int RIFF = 0x46464952;
+            int WAVE = 0x45564157;
+            int formatChunkSize = 16;
+            int headerSize = 8;
+            int format = 0x20746D66;
+            short formatType = 1;
+            short tracks = 1;
+            short bitsPerSample = 16;
+            short frameSize = (short)(tracks * ((bitsPerSample + 7) / 8));
+            int bytesPerSecond = Constants.SamplesPerSecond * frameSize;
+            int waveSize = 4;
+            int data = 0x61746164;
+            int samples = Constants.SamplesPerSecond * durationInSeconds;
+            int dataChunkSize = samples * frameSize;
+            int fileSize = waveSize + headerSize + formatChunkSize + headerSize + dataChunkSize;
+            writer.Write(RIFF);
+            writer.Write(fileSize);
+            writer.Write(WAVE);
+            writer.Write(format);
+            writer.Write(formatChunkSize);
+            writer.Write(formatType);
+            writer.Write(tracks);
+            writer.Write(Constants.SamplesPerSecond);
+            writer.Write(bytesPerSecond);
+            writer.Write(frameSize);
+            writer.Write(bitsPerSample);
+            writer.Write(data);
+            writer.Write(dataChunkSize);
+            return memoryStream;
+        }
+    }
+}
